@@ -14,7 +14,9 @@
     the License.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
     <groupId>io.zipkin.contrib.brave-propagation-w3c</groupId>
     <artifactId>brave-propagation-w3c-parent</artifactId>
@@ -23,7 +25,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>brave-propagation-tracecontext</artifactId>
-  <name>Brave W3C Propagation: Brave Integration</name>
+  <name>Brave W3C Propagation: Trace Context</name>
 
   <properties>
     <!-- Matches Export-Package in bnd.bnd -->
@@ -46,6 +48,19 @@
     <dependency>
       <groupId>${brave.groupId}</groupId>
       <artifactId>brave-tests</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-module-junit4</artifactId>
+      <version>${powermock.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-api-mockito2</artifactId>
+      <version>${powermock.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -73,7 +88,11 @@
                 <filter>
                   <artifact>${brave.groupId}:brave</artifact>
                   <includes>
+                    <include>brave/internal/extra/*.class</include>
                     <include>brave/internal/codec/EntrySplitter*.class</include>
+                    <include>brave/internal/collect/Lists*.class</include>
+                    <include>brave/internal/collect/LongBitSet*.class</include>
+                    <include>brave/internal/collect/UnsafeArrayMap*.class</include>
                     <include>brave/internal/propagation/StringPropagationAdapter*.class</include>
                   </includes>
                 </filter>
@@ -85,7 +104,8 @@
                 </relocation>
               </relocations>
               <transformers>
-                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                <transformer
+                    implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                   <manifestEntries>
                     <Automatic-Module-Name>${module.name}</Automatic-Module-Name>
                   </manifestEntries>
