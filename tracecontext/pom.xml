@@ -90,6 +90,7 @@
                   <includes>
                     <include>brave/internal/extra/*.class</include>
                     <include>brave/internal/codec/EntrySplitter*.class</include>
+                    <include>brave/internal/codec/HexCodec*.class</include>
                     <include>brave/internal/collect/Lists*.class</include>
                     <include>brave/internal/collect/LongBitSet*.class</include>
                     <include>brave/internal/collect/UnsafeArrayMap*.class</include>
