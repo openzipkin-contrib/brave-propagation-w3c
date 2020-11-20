@@ -35,7 +35,7 @@ public class TraceContextPropagationClassLoaderTest {
       Extractor<Map<String, String>> extractor = propagation.get().extractor(Map::get);
 
       TraceContext context =
-          propagation.decorate(TraceContext.newBuilder().traceId(1L).spanId(2L).build());
+        propagation.decorate(TraceContext.newBuilder().traceId(1L).spanId(2L).build());
 
       Map<String, String> headers = new LinkedHashMap<>();
       injector.inject(context, headers);

@@ -24,7 +24,7 @@ import java.util.List;
 import static java.util.Arrays.asList;
 
 public final class TraceContextPropagation extends Propagation.Factory
-    implements Propagation<String> {
+  implements Propagation<String> {
   static final String TRACEPARENT = "traceparent", TRACESTATE = "tracestate";
 
   public static Propagation.Factory create() {
@@ -43,7 +43,8 @@ public final class TraceContextPropagation extends Propagation.Factory
      * The key to use inside the {@code tracestate} value. Defaults to "b3".
      *
      * @throws IllegalArgumentException if the key doesn't conform to ABNF rules defined by the
-     * <href="https://www.w3.org/TR/trace-context-1/#key">trace-context specification</href>.
+     *                                  <href="https://www.w3.org/TR/trace-context-1/#key">trace-context
+     *                                  specification</href>.
      */
     public Builder tracestateKey(String key) {
       if (key == null) throw new NullPointerException("key == null");
