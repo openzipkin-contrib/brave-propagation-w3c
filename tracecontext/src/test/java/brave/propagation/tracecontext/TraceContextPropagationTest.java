@@ -32,11 +32,11 @@ public class TraceContextPropagationTest {
   Extractor<Map<String, String>> extractor = propagation.get().extractor(Map::get);
 
   TraceContext sampledContext = TraceContext.newBuilder()
-      .traceIdHigh(lowerHexToUnsignedLong("67891233abcdef01"))
-      .traceId(lowerHexToUnsignedLong("2345678912345678"))
-      .spanId(lowerHexToUnsignedLong("463ac35c9f6413ad"))
-      .sampled(true)
-      .build();
+    .traceIdHigh(lowerHexToUnsignedLong("67891233abcdef01"))
+    .traceId(lowerHexToUnsignedLong("2345678912345678"))
+    .spanId(lowerHexToUnsignedLong("463ac35c9f6413ad"))
+    .sampled(true)
+    .build();
   String validTraceparent = "00-67891233abcdef012345678912345678-463ac35c9f6413ad-01";
   String validB3Single = "67891233abcdef012345678912345678-463ac35c9f6413ad-1";
   String otherState = "congo=t61rcWkgMzE";
@@ -63,7 +63,7 @@ public class TraceContextPropagationTest {
     request.put("tracestate", "b3=" + validB3Single);
 
     assertThat(extractor.extract(request)).isEqualTo(
-        TraceContextOrSamplingFlags.create(propagation.decorate(sampledContext)));
+      TraceContextOrSamplingFlags.create(propagation.decorate(sampledContext)));
   }
 
   @Test public void extracts_b3_before_other_tracestate() {
@@ -74,7 +74,7 @@ public class TraceContextPropagationTest {
     TracestateFormat.INSTANCE.parseInto(otherState, sampledContext.findExtra(Tracestate.class));
 
     assertThat(extractor.extract(request))
-        .isEqualTo(TraceContextOrSamplingFlags.create(sampledContext));
+      .isEqualTo(TraceContextOrSamplingFlags.create(sampledContext));
   }
 
   @Test public void extracted_toString() {
@@ -82,11 +82,11 @@ public class TraceContextPropagationTest {
     request.put("tracestate", "b3=" + validB3Single + "," + otherState);
 
     assertThat(extractor.extract(request)).hasToString(
-        "Extracted{"
-            + "traceContext=" + sampledContext + ", "
-            + "samplingFlags=SAMPLED_REMOTE, "
-            + "extra=[Tracestate{" + otherState + "}]"
-            + "}");
+      "Extracted{"
+        + "traceContext=" + sampledContext + ", "
+        + "samplingFlags=SAMPLED_REMOTE, "
+        + "extra=[Tracestate{" + otherState + "}]"
+        + "}");
   }
 
   @Test public void extracts_b3_after_other_tracestate() {
@@ -97,6 +97,6 @@ public class TraceContextPropagationTest {
     TracestateFormat.INSTANCE.parseInto(otherState, sampledContext.findExtra(Tracestate.class));
 
     assertThat(extractor.extract(request))
-        .isEqualTo(TraceContextOrSamplingFlags.create(sampledContext));
+      .isEqualTo(TraceContextOrSamplingFlags.create(sampledContext));
   }
 }

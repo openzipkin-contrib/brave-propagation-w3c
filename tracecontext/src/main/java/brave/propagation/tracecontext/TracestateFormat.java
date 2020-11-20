@@ -33,15 +33,15 @@ final class TracestateFormat implements EntrySplitter.Handler<Tracestate> {
   TracestateFormat(boolean shouldThrow) {
     this.shouldThrow = shouldThrow;
     entrySplitter = EntrySplitter.newBuilder()
-        .maxEntries(
-            32) // https://tracecontext.github.io/trace-context/#tracestate-header-field-values
-        .entrySeparator(',')
-        .trimOWSAroundEntrySeparator(true) // https://tracecontext.github.io/trace-context/#list
-        .keyValueSeparator('=')
-        .trimOWSAroundKeyValueSeparator(
-            false) // https://github.com/tracecontext/trace-context/issues/409
-        .shouldThrow(shouldThrow)
-        .build();
+      .maxEntries(
+        32) // https://tracecontext.github.io/trace-context/#tracestate-header-field-values
+      .entrySeparator(',')
+      .trimOWSAroundEntrySeparator(true) // https://tracecontext.github.io/trace-context/#list
+      .keyValueSeparator('=')
+      .trimOWSAroundKeyValueSeparator(
+        false) // https://github.com/tracecontext/trace-context/issues/409
+      .shouldThrow(shouldThrow)
+      .build();
   }
 
   // Simplify parsing rules by allowing value-based lookup on an ASCII value.
@@ -71,7 +71,7 @@ final class TracestateFormat implements EntrySplitter.Handler<Tracestate> {
 
   @Override
   public boolean onEntry(
-      Tracestate target, String buffer, int beginKey, int endKey, int beginValue, int endValue) {
+    Tracestate target, String buffer, int beginKey, int endKey, int beginValue, int endValue) {
     if (!validateKey(buffer, beginKey, endKey)) return false;
     if (!validateValue(buffer, beginValue, beginValue)) return false;
     return target.put(buffer.substring(beginKey, endKey), buffer.substring(beginValue, endValue));

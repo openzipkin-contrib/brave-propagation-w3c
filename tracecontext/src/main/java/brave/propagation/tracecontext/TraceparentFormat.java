@@ -28,10 +28,10 @@ final class TraceparentFormat {
   static final int FORMAT_LENGTH = 3 + 32 + 1 + 16 + 3; // 00-traceid128-spanid-01
 
   static final int // instead of enum for smaller bytecode
-      FIELD_VERSION = 1,
-      FIELD_TRACE_ID = 2,
-      FIELD_PARENT_ID = 3,
-      FIELD_TRACE_FLAGS = 4;
+    FIELD_VERSION = 1,
+    FIELD_TRACE_ID = 2,
+    FIELD_PARENT_ID = 3,
+    FIELD_TRACE_FLAGS = 4;
 
   /** Writes all "traceparent" defined fields in the trace context to a hyphen delimited string. */
   public static String writeTraceparentFormat(TraceContext context) {
@@ -80,15 +80,15 @@ final class TraceparentFormat {
    * This reads a trace context a sequence potentially larger than the format. The use-case is
    * reducing garbage, by re-using the input {@code value} across multiple parse operations.
    *
-   * @param value the sequence that contains a {@code traceparent} formatted trace context
+   * @param value      the sequence that contains a {@code traceparent} formatted trace context
    * @param beginIndex the inclusive begin index: {@linkplain CharSequence#charAt(int) index} of the
-   * first character in {@code traceparent} format.
-   * @param endIndex the exclusive end index: {@linkplain CharSequence#charAt(int) index}
-   * <em>after</em> the last character in {@code traceparent} format.
+   *                   first character in {@code traceparent} format.
+   * @param endIndex   the exclusive end index: {@linkplain CharSequence#charAt(int) index}
+   *                   <em>after</em> the last character in {@code traceparent} format.
    */
   @Nullable
   public static TraceContext parseTraceparentFormat(CharSequence value, int beginIndex,
-      int endIndex) {
+    int endIndex) {
     int length = endIndex - beginIndex;
 
     if (length == 0) {
@@ -214,8 +214,8 @@ final class TraceparentFormat {
 
   static boolean validateFieldLength(int field, int length) {
     int expectedLength = (field == FIELD_VERSION || field == FIELD_TRACE_FLAGS)
-        ? 2  // There are two fields that are 2 characters long: version and flags
-        : field == FIELD_TRACE_ID ? 32 : 16; // trace ID or span ID
+      ? 2  // There are two fields that are 2 characters long: version and flags
+      : field == FIELD_TRACE_ID ? 32 : 16; // trace ID or span ID
     if (length == 0) {
       log(field, "Invalid input: empty {0}");
       return false;

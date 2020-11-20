@@ -46,11 +46,11 @@ public class TraceContextPropagationBenchmarks {
   static final Extractor<Map<String, String>> tcExtractor = tc.extractor(Map::get);
 
   static final TraceContext context = TraceContext.newBuilder()
-      .traceIdHigh(HexCodec.lowerHexToUnsignedLong("67891233abcdef01"))
-      .traceId(HexCodec.lowerHexToUnsignedLong("2345678912345678"))
-      .spanId(HexCodec.lowerHexToUnsignedLong("463ac35c9f6413ad"))
-      .sampled(true)
-      .build();
+    .traceIdHigh(HexCodec.lowerHexToUnsignedLong("67891233abcdef01"))
+    .traceId(HexCodec.lowerHexToUnsignedLong("2345678912345678"))
+    .spanId(HexCodec.lowerHexToUnsignedLong("463ac35c9f6413ad"))
+    .sampled(true)
+    .build();
 
   // TODO: add tracestate examples which prefer the b3 entry
   static final Map<String, String> incoming = new LinkedHashMap<String, String>() {
@@ -62,7 +62,7 @@ public class TraceContextPropagationBenchmarks {
   static final Map<String, String> incomingPadded = new LinkedHashMap<String, String>() {
     {
       put("traceparent",
-          TraceparentFormat.writeTraceparentFormat(context.toBuilder().traceIdHigh(0).build()));
+        TraceparentFormat.writeTraceparentFormat(context.toBuilder().traceIdHigh(0).build()));
     }
   };
 
@@ -98,9 +98,9 @@ public class TraceContextPropagationBenchmarks {
   // Convenience main entry-point
   public static void main(String[] args) throws RunnerException {
     Options opt = new OptionsBuilder()
-        .addProfiler("gc")
-        .include(".*" + TraceContextPropagationBenchmarks.class.getSimpleName())
-        .build();
+      .addProfiler("gc")
+      .include(".*" + TraceContextPropagationBenchmarks.class.getSimpleName())
+      .build();
 
     new Runner(opt).run();
   }

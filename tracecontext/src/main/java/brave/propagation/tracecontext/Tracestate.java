@@ -23,7 +23,7 @@ final class Tracestate extends MapExtra<String, String, Tracestate, Tracestate.F
   }
 
   static final class FactoryBuilder extends
-      MapExtraFactory.Builder<String, String, Tracestate, Factory, FactoryBuilder> {
+    MapExtraFactory.Builder<String, String, Tracestate, Factory, FactoryBuilder> {
     @Override protected Factory build() {
       return new Factory(this);
     }

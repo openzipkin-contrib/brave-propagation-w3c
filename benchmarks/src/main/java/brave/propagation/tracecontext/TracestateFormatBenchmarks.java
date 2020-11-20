@@ -41,22 +41,22 @@ public class TracestateFormatBenchmarks {
   // see https://github.com/w3c/trace-context/pull/386 for clearer definition of this stuff
   static final String KEY_CHAR = "[a-z0-9_\\-*/]";
   static final Pattern KEY_PATTERN = Pattern.compile("^(" +
-      "[a-z]" + KEY_CHAR + "{0,255}" + // Basic Key
-      "|" + // OR
-      "[a-z0-9]" + KEY_CHAR + "{0,240}@[a-z]" + KEY_CHAR + "{0,13}" + // Tenant Key
-      ")$");
+    "[a-z]" + KEY_CHAR + "{0,255}" + // Basic Key
+    "|" + // OR
+    "[a-z0-9]" + KEY_CHAR + "{0,240}@[a-z]" + KEY_CHAR + "{0,13}" + // Tenant Key
+    ")$");
 
   // copied from TracestateFormatTest as we don't share classpath
   static final String FORTY_KEY_CHARS = "abcdefghijklmnopqrstuvwxyz0123456789_-*/";
   static final String TWO_HUNDRED_FORTY_KEY_CHARS =
-      FORTY_KEY_CHARS + FORTY_KEY_CHARS + FORTY_KEY_CHARS
-          + FORTY_KEY_CHARS + FORTY_KEY_CHARS + FORTY_KEY_CHARS;
+    FORTY_KEY_CHARS + FORTY_KEY_CHARS + FORTY_KEY_CHARS
+      + FORTY_KEY_CHARS + FORTY_KEY_CHARS + FORTY_KEY_CHARS;
 
   static final String LONGEST_BASIC_KEY =
-      TWO_HUNDRED_FORTY_KEY_CHARS + FORTY_KEY_CHARS.substring(0, 16);
+    TWO_HUNDRED_FORTY_KEY_CHARS + FORTY_KEY_CHARS.substring(0, 16);
 
   static final String LONGEST_TENANT_KEY =
-      "1" + TWO_HUNDRED_FORTY_KEY_CHARS + "@" + FORTY_KEY_CHARS.substring(0, 13);
+    "1" + TWO_HUNDRED_FORTY_KEY_CHARS + "@" + FORTY_KEY_CHARS.substring(0, 13);
 
   @Benchmark public boolean validateKey_brave_longest_basic() {
     return tracestate.validateKey(LONGEST_BASIC_KEY, 0, LONGEST_BASIC_KEY.length());
@@ -77,8 +77,8 @@ public class TracestateFormatBenchmarks {
   // Convenience main entry-point
   public static void main(String[] args) throws RunnerException {
     Options opt = new OptionsBuilder()
-        .include(".*" + TracestateFormatBenchmarks.class.getSimpleName())
-        .build();
+      .include(".*" + TracestateFormatBenchmarks.class.getSimpleName())
+      .build();
 
     new Runner(opt).run();
   }

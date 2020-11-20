@@ -15,8 +15,8 @@
 
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
     <groupId>io.zipkin.contrib.brave-propagation-w3c</groupId>
     <artifactId>brave-propagation-w3c-parent</artifactId>
@@ -41,6 +41,7 @@
     <dependency>
       <groupId>${brave.groupId}</groupId>
       <artifactId>brave</artifactId>
+      <version>${brave.version}</version>
       <!-- maven-shade-plugin will convert this to provided -->
       <optional>true</optional>
     </dependency>
@@ -48,6 +49,14 @@
     <dependency>
       <groupId>${brave.groupId}</groupId>
       <artifactId>brave-tests</artifactId>
+      <version>${brave.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>${brave.groupId}</groupId>
+      <artifactId>brave-instrumentation-http</artifactId>
+      <version>${brave.version}</version>
       <scope>test</scope>
     </dependency>
 
@@ -106,7 +115,7 @@
               </relocations>
               <transformers>
                 <transformer
-                    implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                  implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                   <manifestEntries>
                     <Automatic-Module-Name>${module.name}</Automatic-Module-Name>
                   </manifestEntries>
