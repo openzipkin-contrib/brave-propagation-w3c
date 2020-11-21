@@ -243,7 +243,6 @@
             <useReleaseProfile>false</useReleaseProfile>
             <releaseProfiles>release</releaseProfiles>
             <autoVersionSubmodules>true</autoVersionSubmodules>
-            <!-- to match zipkin-scala (openzipkin/zipkin) -->
             <tagNameFormat>@{project.version}</tagNameFormat>
           </configuration>
         </plugin>
@@ -400,7 +399,6 @@
             <maven_unjar>SCRIPT_STYLE</maven_unjar>
           </mapping>
           <excludes>
-            <exclude>.docker.env</exclude>
             <exclude>.gitignore</exclude>
             <exclude>.editorconfig</exclude>
             <exclude>.mvn/**</exclude>
