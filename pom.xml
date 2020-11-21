@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright 2019-2020 The OpenZipkin Authors
+    Copyright 2020 The OpenZipkin Authors
 
     Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
     in compliance with the License. You may obtain a copy of the License at
@@ -76,10 +76,10 @@
     <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
   </properties>
 
-  <name>Zipkin Secondary Sampling (Parent)</name>
-  <description>Zipkin Secondary Sampling (Parent)</description>
-  <url>https://github.com/openzipkin-contrib/zipkin-secondary-sampling</url>
-  <inceptionYear>2019</inceptionYear>
+  <name>Brave Propagation W3C (Parent)</name>
+  <description>Brave Propagation W3C (Parent)</description>
+  <url>https://github.com/openzipkin-contrib/brave-propagation-w3c</url>
+  <inceptionYear>2020</inceptionYear>
 
   <organization>
     <name>OpenZipkin</name>
