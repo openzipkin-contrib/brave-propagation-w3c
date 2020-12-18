@@ -82,6 +82,7 @@ final class TracestateFormat implements EntrySplitter.Handler<Tracestate> {
     Tracestate target, String buffer, int beginKey, int endKey, int beginValue, int endValue) {
     if (!validateKey(buffer, beginKey, endKey)) return false;
     if (!validateValue(buffer, beginValue, endValue)) return false;
+    // TODO: consider if we want to keep a ref of the string instead. it will be cheaper than substring
     return target.put(buffer.substring(beginKey, endKey), buffer.substring(beginValue, endValue));
   }
 
