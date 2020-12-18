@@ -5,7 +5,8 @@
 
 This is a work-in-progress originally imported from openzipkin/brave#693
 
-This is not usable, yet.
+This is not usable, yet, because it is unclear about use of "tracestate". While this is something
+others punt, it isn't acceptable here. Once things are clear and clean, we'll say it is usable.
 
 ## Trace Context format
 See [here](tracecontext/README.md) for instructions on how to use the [Trace Context](https://w3c.github.io/trace-context/) format.
