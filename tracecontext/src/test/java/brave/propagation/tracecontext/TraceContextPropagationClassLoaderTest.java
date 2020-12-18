@@ -19,12 +19,12 @@ import brave.propagation.TraceContext.Extractor;
 import brave.propagation.TraceContext.Injector;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static brave.test.util.ClassLoaders.assertRunIsUnloadable;
 
-public class TraceContextPropagationClassLoaderTest {
-  @Test public void unloadable_afterBasicUsage() {
+class TraceContextPropagationClassLoaderTest {
+  @Test void unloadable_afterBasicUsage() {
     assertRunIsUnloadable(BasicUsage.class, getClass().getClassLoader());
   }
 

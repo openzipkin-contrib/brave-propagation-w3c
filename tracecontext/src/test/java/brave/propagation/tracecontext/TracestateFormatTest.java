@@ -16,12 +16,12 @@ package brave.propagation.tracecontext;
 import java.util.Arrays;
 import org.assertj.core.api.AbstractBooleanAssert;
 import org.assertj.core.api.AbstractThrowableAssert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-public class TracestateFormatTest {
+class TracestateFormatTest {
   static final String FORTY_KEY_CHARS = "abcdefghijklmnopqrstuvwxyz0123456789_-*/";
   static final String TWO_HUNDRED_FORTY_KEY_CHARS =
     FORTY_KEY_CHARS + FORTY_KEY_CHARS + FORTY_KEY_CHARS
@@ -36,19 +36,19 @@ public class TracestateFormatTest {
   TracestateFormat tracestateFormat = new TracestateFormat(true);
 
   // all these need log assertions
-  @Test public void validateKey_empty() {
+  @Test void validateKey_empty() {
     assertThatThrownByValidateKey("")
       .hasMessage("Invalid key: empty");
   }
 
-  @Test public void validateKey_tooLong() {
+  @Test void validateKey_tooLong() {
     char[] tooMany = new char[257];
     Arrays.fill(tooMany, 'a');
     assertThatThrownByValidateKey(new String(tooMany))
       .hasMessage("Invalid key: too large");
   }
 
-  @Test public void validateKey_specialCharacters() {
+  @Test void validateKey_specialCharacters() {
     for (char allowedSpecial : Arrays.asList('@', '_', '-', '*', '/')) {
       assertThatThrownByValidateKey(allowedSpecial + "")
         .hasMessage("Invalid key: must start with a-z 0-9");
@@ -60,15 +60,15 @@ public class TracestateFormatTest {
     }
   }
 
-  @Test public void validateKey_longest_basic() {
+  @Test void validateKey_longest_basic() {
     assertThatValidateKey(LONGEST_BASIC_KEY).isTrue();
   }
 
-  @Test public void validateKey_longest_tenant() {
+  @Test void validateKey_longest_tenant() {
     assertThatValidateKey(LONGEST_TENANT_KEY).isTrue();
   }
 
-  @Test public void validateKey_shortest() {
+  @Test void validateKey_shortest() {
     for (char n = '0'; n <= '9'; n++) {
       assertThatValidateKey(String.valueOf(n)).isTrue();
     }
@@ -77,7 +77,7 @@ public class TracestateFormatTest {
     }
   }
 
-  @Test public void validateKey_invalid_unicode() {
+  @Test void validateKey_invalid_unicode() {
     assertThatThrownByValidateKey("a💩")
       .hasMessage("Invalid key: valid characters are: a-z 0-9 _ - * / @");
     assertThatThrownByValidateKey("💩a")

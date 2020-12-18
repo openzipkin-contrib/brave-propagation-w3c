@@ -20,12 +20,12 @@ import brave.propagation.TraceContext.Injector;
 import brave.propagation.TraceContextOrSamplingFlags;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static brave.internal.codec.HexCodec.lowerHexToUnsignedLong;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class TraceContextPropagationTest {
+class TraceContextPropagationTest {
   Map<String, String> request = new LinkedHashMap<>();
   Propagation.Factory propagation = TraceContextPropagation.create();
   Injector<Map<String, String>> injector = propagation.get().injector(Map::put);
@@ -41,7 +41,7 @@ public class TraceContextPropagationTest {
   String validB3Single = "67891233abcdef012345678912345678-463ac35c9f6413ad-1";
   String otherState = "congo=t61rcWkgMzE";
 
-  @Test public void injects_b3_when_no_other_tracestate() {
+  @Test void injects_b3_when_no_other_tracestate() {
     sampledContext = propagation.decorate(sampledContext);
 
     injector.inject(sampledContext, request);
@@ -49,7 +49,7 @@ public class TraceContextPropagationTest {
     assertThat(request).containsEntry("tracestate", "b3=" + validB3Single);
   }
 
-  @Test public void injects_b3_before_other_tracestate() {
+  @Test void injects_b3_before_other_tracestate() {
     sampledContext = propagation.decorate(sampledContext);
     TracestateFormat.INSTANCE.parseInto(otherState, sampledContext.findExtra(Tracestate.class));
 
@@ -58,7 +58,7 @@ public class TraceContextPropagationTest {
     assertThat(request).containsEntry("tracestate", "b3=" + validB3Single + "," + otherState);
   }
 
-  @Test public void extracts_b3_when_no_other_tracestate() {
+  @Test void extracts_b3_when_no_other_tracestate() {
     request.put("traceparent", validTraceparent);
     request.put("tracestate", "b3=" + validB3Single);
 
@@ -66,7 +66,7 @@ public class TraceContextPropagationTest {
       TraceContextOrSamplingFlags.create(propagation.decorate(sampledContext)));
   }
 
-  @Test public void extracts_b3_before_other_tracestate() {
+  @Test void extracts_b3_before_other_tracestate() {
     request.put("traceparent", validTraceparent);
     request.put("tracestate", "b3=" + validB3Single + "," + otherState);
 
@@ -77,7 +77,7 @@ public class TraceContextPropagationTest {
       .isEqualTo(TraceContextOrSamplingFlags.create(sampledContext));
   }
 
-  @Test public void extracted_toString() {
+  @Test void extracted_toString() {
     request.put("traceparent", validTraceparent);
     request.put("tracestate", "b3=" + validB3Single + "," + otherState);
 
@@ -89,7 +89,7 @@ public class TraceContextPropagationTest {
         + "}");
   }
 
-  @Test public void extracts_b3_after_other_tracestate() {
+  @Test void extracts_b3_after_other_tracestate() {
     request.put("traceparent", validTraceparent);
     request.put("tracestate", otherState + ",b3=" + validB3Single);
 

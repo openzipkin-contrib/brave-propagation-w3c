@@ -20,16 +20,16 @@ import brave.http.HttpClientHandler;
 import brave.http.HttpServerHandler;
 import brave.http.HttpTracing;
 import brave.test.TestSpanHandler;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 // Do not bring any dependencies into this test without looking at src/it/pom.xml as this is used
 // to verify we don't depend on internals.
-public class BasicUsageTest {
+class BasicUsageTest {
   TestSpanHandler spans = new TestSpanHandler();
 
-  @Test public void basicUsage() {
+  @Test void basicUsage() {
     try (Tracing tracing = Tracing.newBuilder()
       .propagationFactory(TraceContextPropagation.create())
       .addSpanHandler(spans)
