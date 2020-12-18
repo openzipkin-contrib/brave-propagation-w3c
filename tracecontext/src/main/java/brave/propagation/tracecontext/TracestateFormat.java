@@ -54,10 +54,15 @@ final class TracestateFormat implements EntrySplitter.Handler<Tracestate> {
   // an array of 64 thousand booleans: that could be problematic in old JREs or Android.
   static int LAST_VALID_KEY_CHAR = 'z';
   static boolean[] VALID_KEY_CHARS = new boolean[LAST_VALID_KEY_CHAR + 1];
+  static int LAST_VALID_VALUE_CHAR = '~';
+  static boolean[] VALID_VALUE_CHARS = new boolean[LAST_VALID_VALUE_CHAR + 1];
 
   static {
     for (char c = 0; c < VALID_KEY_CHARS.length; c++) {
       VALID_KEY_CHARS[c] = isValidTracestateKeyChar(c);
+    }
+    for (char c = 0; c < VALID_VALUE_CHARS.length; c++) {
+      VALID_VALUE_CHARS[c] = isValidTracestateValueChar(c);
     }
   }
 
@@ -69,11 +74,15 @@ final class TracestateFormat implements EntrySplitter.Handler<Tracestate> {
     return (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9');
   }
 
-  @Override
-  public boolean onEntry(
+  static boolean isValidTracestateValueChar(char c) {
+    return c >= ' ' && c <= '~' && c != ',' && c != '=';
+  }
+
+  @Override public boolean onEntry(
     Tracestate target, String buffer, int beginKey, int endKey, int beginValue, int endValue) {
     if (!validateKey(buffer, beginKey, endKey)) return false;
-    if (!validateValue(buffer, beginValue, beginValue)) return false;
+    if (!validateValue(buffer, beginValue, endValue)) return false;
+    // TODO: consider if we want to keep a ref of the string instead. it will be cheaper than substring
     return target.put(buffer.substring(beginKey, endKey), buffer.substring(beginValue, endValue));
   }
 
@@ -107,9 +116,30 @@ final class TracestateFormat implements EntrySplitter.Handler<Tracestate> {
     return true;
   }
 
+  /**
+   * https://www.w3.org/TR/trace-context-1 has some ambiguity about how to treat the value when
+   * considering whitespace. https://github.com/w3c/trace-context/pull/411 clarifies initial spaces
+   * are a part of the value. However, the value must end in at least one character in the range
+   * ' ' to '~', except ',' and '='. This implementation is based on the updated interpretation.
+   *
+   * <p>For example, pull 411 clarifies "" is not valid, and "   a" is a different value than " a".
+   */
   boolean validateValue(CharSequence buffer, int beginValue, int endValue) {
-    // TODO: empty and whitespace-only allowed Ex. 'foo=' or 'foo=  '
-    // There are likely other rules, so figure out what they are and implement.
+    int length = endValue - beginValue;
+    if (length == 0) return logOrThrow("Invalid value: empty", shouldThrow);
+    if (length > 256) return logOrThrow("Invalid value: too large", shouldThrow);
+    if (buffer.charAt(endValue - 1) == ' ') {
+      return logOrThrow("Invalid value: must end in a non-space character", shouldThrow);
+    }
+
+    for (int i = beginValue; i < endValue; i++) {
+      char c = buffer.charAt(i);
+
+      if (c > LAST_VALID_VALUE_CHAR || !VALID_VALUE_CHARS[c]) {
+        return logOrThrow("Invalid value: valid characters are: ' ' to '~', except ',' and '='",
+          shouldThrow);
+      }
+    }
     return true;
   }
 
