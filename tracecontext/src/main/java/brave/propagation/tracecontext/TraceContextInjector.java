@@ -20,21 +20,28 @@ import brave.propagation.TraceContext.Injector;
 
 import static brave.propagation.tracecontext.TraceContextPropagation.TRACEPARENT;
 import static brave.propagation.tracecontext.TraceContextPropagation.TRACESTATE;
-import static brave.propagation.tracecontext.TraceparentFormat.writeTraceparentFormat;
 
 final class TraceContextInjector<R> implements Injector<R> {
   final Setter<R, String> setter;
+  final TraceparentFormat traceparentFormat;
   final String tracestateKey;
 
   TraceContextInjector(TraceContextPropagation propagation, Setter<R, String> setter) {
     this.setter = setter;
+    this.traceparentFormat = propagation.traceparentFormat;
     this.tracestateKey = propagation.tracestateKey;
   }
 
   @Override public void inject(TraceContext context, R request) {
-    setter.put(request, TRACEPARENT, writeTraceparentFormat(context));
+    setter.put(request, TRACEPARENT, traceparentFormat.write(context));
     Tracestate tracestate = context.findExtra(Tracestate.class);
-    tracestate.put(tracestateKey, B3SingleFormat.writeB3SingleFormat(context));
-    setter.put(request, TRACESTATE, tracestate.stateString());
+
+    // TODO: char buffer to reduce allocations in tracestate.stateString
+    String b3 = B3SingleFormat.writeB3SingleFormat(context);
+    if (tracestate != null) {
+      setter.put(request, TRACESTATE, tracestate.stateString(tracestateKey, b3));
+    } else {
+      setter.put(request, TRACESTATE, tracestateKey + "=" + b3);
+    }
   }
 }

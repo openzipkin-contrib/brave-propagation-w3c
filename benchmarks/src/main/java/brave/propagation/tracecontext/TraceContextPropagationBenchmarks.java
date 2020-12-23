@@ -41,7 +41,7 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 @BenchmarkMode(Mode.SampleTime)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
 public class TraceContextPropagationBenchmarks {
-  static final Propagation<String> tc = TraceContextPropagation.create().get();
+  static final Propagation<String> tc = TraceContextPropagation.get();
   static final Injector<Map<String, String>> tcInjector = tc.injector(Map::put);
   static final Extractor<Map<String, String>> tcExtractor = tc.extractor(Map::get);
 
@@ -55,14 +55,13 @@ public class TraceContextPropagationBenchmarks {
   // TODO: add tracestate examples which prefer the b3 entry
   static final Map<String, String> incoming = new LinkedHashMap<String, String>() {
     {
-      put("traceparent", TraceparentFormat.writeTraceparentFormat(context));
+      put("traceparent", TraceparentFormat.get().write(context));
     }
   };
 
   static final Map<String, String> incomingPadded = new LinkedHashMap<String, String>() {
     {
-      put("traceparent",
-        TraceparentFormat.writeTraceparentFormat(context.toBuilder().traceIdHigh(0).build()));
+      put("traceparent", TraceparentFormat.get().write(context.toBuilder().traceIdHigh(0).build()));
     }
   };
 

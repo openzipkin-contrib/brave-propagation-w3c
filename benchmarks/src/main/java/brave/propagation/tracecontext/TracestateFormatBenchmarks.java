@@ -37,41 +37,31 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 @BenchmarkMode(Mode.Throughput) // simpler to interpret vs sample time
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
 public class TracestateFormatBenchmarks {
-  static final TracestateFormat tracestate = new TracestateFormat(true);
-  // see https://github.com/w3c/trace-context/pull/386 for clearer definition of this stuff
-  static final String KEY_CHAR = "[a-z0-9_\\-*/]";
-  static final Pattern KEY_PATTERN = Pattern.compile("^(" +
-    "[a-z]" + KEY_CHAR + "{0,255}" + // Basic Key
-    "|" + // OR
-    "[a-z0-9]" + KEY_CHAR + "{0,240}@[a-z]" + KEY_CHAR + "{0,13}" + // Tenant Key
-    ")$");
+  static final TracestateFormat tracestate = new TracestateFormat("b3", true);
+  static final Pattern KEY_PATTERN = Pattern.compile("^[a-z0-9_\\-*/]{1,256}$");
+  static final String VAL_CHAR =
+    "[!\"#$%&'()*+\\-./0123456789:;<>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ\\[\\\\\\]^_`abcdefghijklmnopqrstuvwxyz{|}~]";
+  static final Pattern VALUE_PATTERN =
+    Pattern.compile("^( {0,255}" + VAL_CHAR + "|" + VAL_CHAR + VAL_CHAR + " {0,255})$");
 
-  // copied from TracestateFormatTest as we don't share classpath
-  static final String FORTY_KEY_CHARS = "abcdefghijklmnopqrstuvwxyz0123456789_-*/";
-  static final String TWO_HUNDRED_FORTY_KEY_CHARS =
-    FORTY_KEY_CHARS + FORTY_KEY_CHARS + FORTY_KEY_CHARS
-      + FORTY_KEY_CHARS + FORTY_KEY_CHARS + FORTY_KEY_CHARS;
+  static final String TRACESTATE_KEY_RANGE = "*-/0123456789@_abcdefghijklmnopqrstuvwxyz";
+  static final String TRACESTATE_VALUE_RANGE =
+    " !\"#$%&'()*+-./0123456789:;<>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
 
-  static final String LONGEST_BASIC_KEY =
-    TWO_HUNDRED_FORTY_KEY_CHARS + FORTY_KEY_CHARS.substring(0, 16);
-
-  static final String LONGEST_TENANT_KEY =
-    "1" + TWO_HUNDRED_FORTY_KEY_CHARS + "@" + FORTY_KEY_CHARS.substring(0, 13);
-
-  @Benchmark public boolean validateKey_brave_longest_basic() {
-    return tracestate.validateKey(LONGEST_BASIC_KEY, 0, LONGEST_BASIC_KEY.length());
+  @Benchmark public boolean validateKey_range_brave() {
+    return tracestate.validateKey(TRACESTATE_KEY_RANGE, 0, TRACESTATE_KEY_RANGE.length());
   }
 
-  @Benchmark public boolean validateKey_brave_longest_tenant() {
-    return tracestate.validateKey(LONGEST_TENANT_KEY, 0, LONGEST_TENANT_KEY.length());
+  @Benchmark public boolean validateKey_range() {
+    return KEY_PATTERN.matcher(TRACESTATE_KEY_RANGE).matches();
   }
 
-  @Benchmark public boolean validateKey_regex_longest_basic() {
-    return KEY_PATTERN.matcher(LONGEST_BASIC_KEY).matches();
+  @Benchmark public boolean validateValue_range_brave() {
+    return tracestate.validateValue(TRACESTATE_VALUE_RANGE, 0, TRACESTATE_VALUE_RANGE.length());
   }
 
-  @Benchmark public boolean validateKey_regex_longest_tenant() {
-    return KEY_PATTERN.matcher(LONGEST_TENANT_KEY).matches();
+  @Benchmark public boolean validateValue_range() {
+    return VALUE_PATTERN.matcher(TRACESTATE_VALUE_RANGE).matches();
   }
 
   // Convenience main entry-point

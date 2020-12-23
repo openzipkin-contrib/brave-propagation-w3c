@@ -13,8 +13,10 @@
  */
 package brave.propagation.tracecontext;
 
-import brave.internal.Platform;
 import brave.internal.codec.EntrySplitter;
+
+import static brave.propagation.tracecontext.TraceContextPropagation.logOrThrow;
+import static brave.propagation.tracecontext.internal.CharSequences.regionMatches;
 
 /**
  * Implements https://tracecontext.github.io/trace-context/#tracestate-header
@@ -24,22 +26,26 @@ import brave.internal.codec.EntrySplitter;
  * specific. We choose to not use the term vendor as this is open source code. Instead, we use term
  * entry (key/value).
  */
-final class TracestateFormat implements EntrySplitter.Handler<Tracestate> {
-  static final TracestateFormat INSTANCE = new TracestateFormat(false);
+final class TracestateFormat implements EntrySplitter.Handler<int[]> {
+  static final TracestateFormat INSTANCE = new TracestateFormat("b3", false);
 
+  static TracestateFormat get() {
+    return INSTANCE;
+  }
+
+  final String thisKey;
   final boolean shouldThrow;
   final EntrySplitter entrySplitter;
 
-  TracestateFormat(boolean shouldThrow) {
+  TracestateFormat(String thisKey, boolean shouldThrow) {
+    this.thisKey = thisKey;
     this.shouldThrow = shouldThrow;
     entrySplitter = EntrySplitter.newBuilder()
-      .maxEntries(
-        32) // https://tracecontext.github.io/trace-context/#tracestate-header-field-values
+      .maxEntries(32) // https://www.w3.org/TR/trace-context/#list
       .entrySeparator(',')
-      .trimOWSAroundEntrySeparator(true) // https://tracecontext.github.io/trace-context/#list
+      .trimOWSAroundEntrySeparator(true) // https://www.w3.org/TR/trace-context/#list
       .keyValueSeparator('=')
-      .trimOWSAroundKeyValueSeparator(
-        false) // https://github.com/tracecontext/trace-context/issues/409
+      .trimOWSAroundKeyValueSeparator(false) // https://github.com/w3c/trace-context/pull/411
       .shouldThrow(shouldThrow)
       .build();
   }
@@ -78,16 +84,29 @@ final class TracestateFormat implements EntrySplitter.Handler<Tracestate> {
     return c >= ' ' && c <= '~' && c != ',' && c != '=';
   }
 
-  @Override public boolean onEntry(
-    Tracestate target, String buffer, int beginKey, int endKey, int beginValue, int endValue) {
-    if (!validateKey(buffer, beginKey, endKey)) return false;
-    if (!validateValue(buffer, beginValue, endValue)) return false;
-    // TODO: consider if we want to keep a ref of the string instead. it will be cheaper than substring
-    return target.put(buffer.substring(beginKey, endKey), buffer.substring(beginValue, endValue));
+  @Override public boolean onEntry(int[] target,
+    String buffer, int beginKey, int endKey, int beginValue, int endValue) {
+    if (!validateKey(buffer, beginKey, endKey) || !validateValue(buffer, beginValue, endValue)) {
+      return false;
+    }
+
+    // If we receive upstream data for our key, mark the offsets so we can parse them later.
+    if (regionMatches(thisKey, buffer, beginKey, endKey)) {
+      target[1] = beginKey;
+      target[2] = endKey;
+      target[3] = beginValue;
+      target[4] = endValue;
+    } else if (target[1] != -1 && target[5] == -1) {
+      target[5] = beginKey;
+    } else if (target[0] == -1) {
+      target[0] = endValue;
+    }
+
+    return true;
   }
 
-  boolean parseInto(String tracestateString, Tracestate tracestate) {
-    return entrySplitter.parse(this, tracestate, tracestateString);
+  boolean parseInto(String tracestateString, int[] indices) {
+    return entrySplitter.parse(this, indices, tracestateString);
   }
 
   /**
@@ -119,8 +138,8 @@ final class TracestateFormat implements EntrySplitter.Handler<Tracestate> {
   /**
    * https://www.w3.org/TR/trace-context-1 has some ambiguity about how to treat the value when
    * considering whitespace. https://github.com/w3c/trace-context/pull/411 clarifies initial spaces
-   * are a part of the value. However, the value must end in at least one character in the range
-   * ' ' to '~', except ',' and '='. This implementation is based on the updated interpretation.
+   * are a part of the value. However, the value must end in at least one character in the range ' '
+   * to '~', except ',' and '='. This implementation is based on the updated interpretation.
    *
    * <p>For example, pull 411 clarifies "" is not valid, and "   a" is a different value than " a".
    */
@@ -141,11 +160,5 @@ final class TracestateFormat implements EntrySplitter.Handler<Tracestate> {
       }
     }
     return true;
-  }
-
-  static boolean logOrThrow(String msg, boolean shouldThrow) {
-    if (shouldThrow) throw new IllegalArgumentException(msg);
-    Platform.get().log(msg, null);
-    return false;
   }
 }

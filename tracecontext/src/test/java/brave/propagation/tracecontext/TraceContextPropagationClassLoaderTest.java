@@ -30,19 +30,18 @@ class TraceContextPropagationClassLoaderTest {
 
   static class BasicUsage implements Runnable {
     @Override public void run() {
-      Propagation.Factory propagation = TraceContextPropagation.create();
-      Injector<Map<String, String>> injector = propagation.get().injector(Map::put);
-      Extractor<Map<String, String>> extractor = propagation.get().extractor(Map::get);
+      Propagation<String> propagation = TraceContextPropagation.get();
+      Injector<Map<String, String>> injector = propagation.injector(Map::put);
+      Extractor<Map<String, String>> extractor = propagation.extractor(Map::get);
 
-      TraceContext context =
-        propagation.decorate(TraceContext.newBuilder().traceId(1L).spanId(2L).build());
+      TraceContext context = TraceContext.newBuilder().traceId(1L).spanId(2L).build();
 
       Map<String, String> headers = new LinkedHashMap<>();
       injector.inject(context, headers);
 
       String traceparent = headers.get("traceparent");
       if (!"00-00000000000000000000000000000001-0000000000000002-00".equals(traceparent)) {
-        throw new AssertionError();
+        throw new AssertionError(traceparent);
       }
 
       if (!context.equals(extractor.extract(headers).context())) {

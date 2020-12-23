@@ -34,7 +34,7 @@ class TracestateFormatTest {
   static final String LONGEST_TENANT_KEY =
     "1" + TWO_HUNDRED_FORTY_KEY_CHARS + "@" + FORTY_KEY_CHARS.substring(0, 13);
 
-  TracestateFormat tracestateFormat = new TracestateFormat(true);
+  TracestateFormat tracestateFormat = new TracestateFormat("b3", true);
 
   // all these need log assertions
   @Test void validateKey_empty() {

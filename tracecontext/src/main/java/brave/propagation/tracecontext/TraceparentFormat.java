@@ -14,7 +14,6 @@
 package brave.propagation.tracecontext;
 
 import brave.internal.Nullable;
-import brave.internal.Platform;
 import brave.propagation.TraceContext;
 import java.nio.ByteBuffer;
 
@@ -24,33 +23,44 @@ import static brave.internal.codec.HexCodec.writeHexLong;
 // TODO: this uses the internal Platform class as it defers access to the logger and makes JUL less
 // expensive. We should inline that here to to unhook the internal dep.
 final class TraceparentFormat {
+  static final TraceparentFormat INSTANCE = new TraceparentFormat(false);
+
+  static TraceparentFormat get() {
+    return INSTANCE;
+  }
+
   /** Version '00' is fixed length, though future versions may be longer. */
   static final int FORMAT_LENGTH = 3 + 32 + 1 + 16 + 3; // 00-traceid128-spanid-01
-
   static final int // instead of enum for smaller bytecode
     FIELD_VERSION = 1,
     FIELD_TRACE_ID = 2,
     FIELD_PARENT_ID = 3,
     FIELD_TRACE_FLAGS = 4;
 
+  final boolean shouldThrow;
+
+  TraceparentFormat(boolean shouldThrow) {
+    this.shouldThrow = shouldThrow;
+  }
+
   /** Writes all "traceparent" defined fields in the trace context to a hyphen delimited string. */
-  public static String writeTraceparentFormat(TraceContext context) {
+  String write(TraceContext context) {
     char[] buffer = getCharBuffer();
-    int length = writeTraceparentFormat(context, buffer);
+    int length = write(context, buffer);
     return new String(buffer, 0, length);
   }
 
   /**
-   * Like {@link #writeTraceparentFormat(TraceContext)}, but for requests with byte array or byte
-   * buffer values. For example, {@link ByteBuffer#wrap(byte[])} can wrap the result.
+   * Like {@link #write(TraceContext)}, but for requests with byte array or byte buffer values. For
+   * example, {@link ByteBuffer#wrap(byte[])} can wrap the result.
    */
-  public static byte[] writeTraceparentFormatAsBytes(TraceContext context) {
+  byte[] writeAsBytes(TraceContext context) {
     char[] buffer = getCharBuffer();
-    int length = writeTraceparentFormat(context, buffer);
+    int length = write(context, buffer);
     return asciiToNewByteArray(buffer, length);
   }
 
-  static int writeTraceparentFormat(TraceContext context, char[] result) {
+  int write(TraceContext context, char[] result) {
     int pos = 0;
     result[pos++] = '0';
     result[pos++] = '0';
@@ -71,9 +81,8 @@ final class TraceparentFormat {
     return pos;
   }
 
-  @Nullable
-  public static TraceContext parseTraceparentFormat(CharSequence parent) {
-    return parseTraceparentFormat(parent, 0, parent.length());
+  @Nullable TraceContext parse(CharSequence parent) {
+    return parse(parent, 0, parent.length(), shouldThrow);
   }
 
   /**
@@ -86,13 +95,16 @@ final class TraceparentFormat {
    * @param endIndex   the exclusive end index: {@linkplain CharSequence#charAt(int) index}
    *                   <em>after</em> the last character in {@code traceparent} format.
    */
+  @Nullable TraceContext parse(CharSequence value, int beginIndex, int endIndex) {
+    return parse(value, beginIndex, endIndex, shouldThrow);
+  }
+
   @Nullable
-  public static TraceContext parseTraceparentFormat(CharSequence value, int beginIndex,
-    int endIndex) {
+  static TraceContext parse(CharSequence value, int beginIndex, int endIndex, boolean shouldThrow) {
     int length = endIndex - beginIndex;
 
     if (length == 0) {
-      Platform.get().log("Invalid input: empty", null);
+      TraceContextPropagation.logOrThrow("Invalid input: empty", shouldThrow);
       return null;
     }
 
@@ -115,7 +127,7 @@ final class TraceparentFormat {
       char c = isEof ? '-' : value.charAt(pos);
 
       if (c == '-') {
-        if (!validateFieldLength(currentField, currentFieldLength)) {
+        if (!validateFieldLength(currentField, currentFieldLength, shouldThrow)) {
           return null;
         }
 
@@ -124,10 +136,10 @@ final class TraceparentFormat {
             // 8-bit unsigned 255 is disallowed https://tracecontext.github.io/trace-context/#version
             version = (int) buffer;
             if (version == 0xff) {
-              log(currentField, "Invalid input: ff {0}");
+              logOrThrow(currentField, "Invalid input: ff {0}", shouldThrow);
               return null;
             } else if (version == 0 && length > FORMAT_LENGTH) {
-              Platform.get().log("Invalid input: too long", null);
+              TraceContextPropagation.logOrThrow("Invalid input: too long", shouldThrow);
               return null;
             }
 
@@ -135,7 +147,7 @@ final class TraceparentFormat {
             break;
           case FIELD_TRACE_ID:
             if (traceIdHighZero && buffer == 0L) {
-              logReadAllZeros(currentField);
+              logReadAllZeros(currentField, shouldThrow);
               return null;
             }
 
@@ -145,7 +157,7 @@ final class TraceparentFormat {
             break;
           case FIELD_PARENT_ID:
             if (buffer == 0L) {
-              logReadAllZeros(currentField);
+              logReadAllZeros(currentField, shouldThrow);
               return null;
             }
 
@@ -163,12 +175,14 @@ final class TraceparentFormat {
             // https://tracecontext.github.io/trace-context/#other-flags
             if (version == 0) {
               if ((traceparentFlags & ~1) != 0) {
-                log(currentField, "Invalid input: only choices are 00 or 01 {0}");
+                logOrThrow(currentField, "Invalid input: only choices are 00 or 01 {0}",
+                  shouldThrow);
                 return null;
               }
 
               if (!isEof) {
-                Platform.get().log("Invalid input: more than 3 fields exist", null);
+                TraceContextPropagation.logOrThrow("Invalid input: more than 3 fields exist",
+                  shouldThrow);
                 return null;
               }
             }
@@ -204,7 +218,8 @@ final class TraceparentFormat {
       } else if (c >= 'a' && c <= 'f') {
         buffer |= c - 'a' + 10;
       } else {
-        log(currentField, "Invalid input: only valid characters are lower-hex for {0}");
+        logOrThrow(currentField, "Invalid input: only valid characters are lower-hex for {0}",
+          shouldThrow);
         return null;
       }
     }
@@ -212,28 +227,25 @@ final class TraceparentFormat {
     return builder.build();
   }
 
-  static boolean validateFieldLength(int field, int length) {
+  static boolean validateFieldLength(int field, int length, boolean shouldThrow) {
     int expectedLength = (field == FIELD_VERSION || field == FIELD_TRACE_FLAGS)
       ? 2  // There are two fields that are 2 characters long: version and flags
       : field == FIELD_TRACE_ID ? 32 : 16; // trace ID or span ID
     if (length == 0) {
-      log(field, "Invalid input: empty {0}");
-      return false;
+      return logOrThrow(field, "Invalid input: empty {0}", shouldThrow);
     } else if (length < expectedLength) {
-      log(field, "Invalid input: {0} is too short");
-      return false;
+      return logOrThrow(field, "Invalid input: {0} is too short", shouldThrow);
     } else if (length > expectedLength) {
-      log(field, "Invalid input: {0} is too long");
-      return false;
+      return logOrThrow(field, "Invalid input: {0} is too long", shouldThrow);
     }
     return true;
   }
 
-  static void logReadAllZeros(int currentField) {
-    log(currentField, "Invalid input: read all zeros {0}");
+  static void logReadAllZeros(int currentField, boolean shouldThrow) {
+    logOrThrow(currentField, "Invalid input: read all zeros {0}", shouldThrow);
   }
 
-  static void log(int fieldCode, String s) {
+  static boolean logOrThrow(int fieldCode, String msg, boolean shouldThrow) {
     String field;
     switch (fieldCode) {
       case FIELD_VERSION:
@@ -253,7 +265,7 @@ final class TraceparentFormat {
       default:
         throw new AssertionError("field code unmatched: " + fieldCode);
     }
-    Platform.get().log(s, field, null);
+    return TraceContextPropagation.logOrThrow(msg, field, shouldThrow);
   }
 
   static byte[] asciiToNewByteArray(char[] buffer, int length) {
@@ -273,8 +285,5 @@ final class TraceparentFormat {
       CHAR_BUFFER.set(charBuffer);
     }
     return charBuffer;
-  }
-
-  TraceparentFormat() {
   }
 }

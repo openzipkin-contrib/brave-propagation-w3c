@@ -13,56 +13,36 @@
  */
 package brave.propagation.tracecontext;
 
-import brave.internal.extra.MapExtra;
-import brave.internal.extra.MapExtraFactory;
+import brave.internal.Nullable;
 
-final class Tracestate extends MapExtra<String, String, Tracestate, Tracestate.Factory> {
-  static Factory newFactory(String tracestateKey) {
-    // max is total initial + dynamic
-    return new FactoryBuilder().addInitialKey(tracestateKey).maxDynamicEntries(31).build();
+final class Tracestate {
+  static final Tracestate EMPTY = new Tracestate(null);
+
+  @Nullable final CharSequence otherState;
+
+  Tracestate(CharSequence otherState) {
+    this.otherState = otherState;
   }
 
-  static final class FactoryBuilder extends
-    MapExtraFactory.Builder<String, String, Tracestate, Factory, FactoryBuilder> {
-    @Override protected Factory build() {
-      return new Factory(this);
-    }
+  static Tracestate create(CharSequence otherState) {
+    return otherState != null && otherState.length() > 0
+      ? new Tracestate(otherState)
+      : Tracestate.EMPTY;
   }
 
-  static final class Factory extends MapExtraFactory<String, String, Tracestate, Factory> {
-    Factory(FactoryBuilder builder) {
-      super(builder);
-    }
+  String stateString(String thisKey, String thisValue) {
+    int length = thisKey.length() + 1 + thisValue.length();
+    if (otherState != null) length += 1 + otherState.length();
 
-    @Override protected Tracestate create() {
-      return new Tracestate(this);
-    }
-  }
-
-  Tracestate(Factory factory) {
-    super(factory);
-  }
-
-  @Override protected String get(String key) {
-    return super.get(key);
-  }
-
-  @Override protected String stateString() {
-    Object[] array = (Object[]) state;
     // TODO: SHOULD on 512 char limit https://tracecontext.github.io/trace-context/#tracestate-limits
-    StringBuilder result = new StringBuilder();
-    boolean empty = true;
-    for (int i = 0; i < array.length; i += 2) {
-      String key = (String) array[i], value = (String) array[i + 1];
-      if (value == null) continue;
-      if (!empty) result.append(',');
-      result.append(key).append('=').append(value);
-      empty = false;
-    }
+    StringBuilder result = new StringBuilder(length);
+    result.append(thisKey).append('=').append(thisValue);
+    if (otherState != null) result.append(',').append(otherState);
     return result.toString();
   }
 
-  @Override protected boolean put(String key, String value) {
-    return super.put(key, value);
+  @Override public String toString() {
+    if (otherState == null) return "Tracestate{}";
+    return "Tracestate{" + otherState + "}";
   }
 }
