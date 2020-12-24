@@ -31,7 +31,7 @@ class BasicUsageTest {
 
   @Test void basicUsage() {
     try (Tracing tracing = Tracing.newBuilder()
-      .propagationFactory(TraceContextPropagation.create())
+      .propagationFactory(TraceContextPropagation.FACTORY)
       .addSpanHandler(spans)
       .build()) {
 
@@ -54,7 +54,7 @@ class BasicUsageTest {
 
         Span server = serverHandler.handleReceive(new FakeHttpRequest.Server(request));
         assertThat(server.context().parentIdString())
-          .isEqualTo(client.context().spanIdString()); // trace continued
+          .isEqualTo(client.context().parentIdString()); // trace continued
 
         server.finish();
         client.finish();

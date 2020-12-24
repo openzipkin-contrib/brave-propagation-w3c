@@ -84,7 +84,6 @@
                 <filter>
                   <artifact>${brave.groupId}:brave</artifact>
                   <includes>
-                    <include>brave/internal/extra/*.class</include>
                     <include>brave/internal/codec/EntrySplitter*.class</include>
                     <include>brave/internal/codec/HexCodec*.class</include>
                     <include>brave/internal/collect/Lists*.class</include>

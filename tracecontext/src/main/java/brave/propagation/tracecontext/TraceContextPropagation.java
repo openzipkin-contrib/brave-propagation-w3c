@@ -20,24 +20,31 @@ import brave.propagation.TraceContext.Extractor;
 import brave.propagation.TraceContext.Injector;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 
 import static java.util.Arrays.asList;
 
-public final class TraceContextPropagation extends Propagation.Factory
-  implements Propagation<String> {
+public final class TraceContextPropagation implements Propagation<String> {
   static final String TRACEPARENT = "traceparent", TRACESTATE = "tracestate";
+  public static final Propagation.Factory FACTORY = new Factory(newFactoryBuilder());
+  static final Propagation<String> INSTANCE = FACTORY.get();
 
-  public static Propagation.Factory create() {
-    return new Builder().build();
+  public static Propagation<String> get() {
+    return INSTANCE;
   }
 
-  public static Builder newBuilder() {
-    return new Builder();
+  public static FactoryBuilder newFactoryBuilder() {
+    return new FactoryBuilder();
   }
 
-  public static final class Builder {
-    static final TracestateFormat THROWING_VALIDATOR = new TracestateFormat(true);
+  public static final class FactoryBuilder {
+    static final TracestateFormat THROWING_VALIDATOR = new TracestateFormat("b3", true);
     String tracestateKey = "b3";
+
+    FactoryBuilder() {
+    }
 
     /**
      * The key to use inside the {@code tracestate} value. Defaults to "b3".
@@ -46,7 +53,7 @@ public final class TraceContextPropagation extends Propagation.Factory
      *                                  <href="https://www.w3.org/TR/trace-context-1/#key">trace-context
      *                                  specification</href>.
      */
-    public Builder tracestateKey(String key) {
+    public FactoryBuilder tracestateKey(String key) {
       if (key == null) throw new NullPointerException("key == null");
       THROWING_VALIDATOR.validateKey(key, 0, key.length());
       this.tracestateKey = key;
@@ -54,40 +61,60 @@ public final class TraceContextPropagation extends Propagation.Factory
     }
 
     public Propagation.Factory build() {
+      Factory result = new Factory(this);
+      if (result.equals(FACTORY)) return FACTORY;
+      return result;
+    }
+  }
+
+  static final class Factory extends Propagation.Factory {
+    final String tracestateKey;
+
+    Factory(FactoryBuilder builder) {
+      this.tracestateKey = builder.tracestateKey;
+    }
+
+    @Override public Propagation<String> get() {
       return new TraceContextPropagation(this);
     }
 
-    Builder() {
+    @Deprecated public <K> Propagation<K> create(KeyFactory<K> keyFactory) {
+      return StringPropagationAdapter.create(get(), keyFactory);
+    }
+
+    @Override public boolean supportsJoin() {
+      return true; // B3 allows join
+    }
+
+    @Override public boolean requires128BitTraceId() {
+      return false; // B3 doesn't requre 128-bit
+    }
+
+    @Override public TraceContext decorate(TraceContext context) {
+      // we don't allow state changes yet, so nothing to decorate
+      return context;
+    }
+
+    @Override public boolean equals(Object o) {
+      if (o == this) return true;
+      if (!(o instanceof Factory)) return false;
+
+      Factory that = (Factory) o;
+      return tracestateKey.equals(that.tracestateKey);
     }
   }
 
   final String tracestateKey;
-  final Tracestate.Factory tracestateFactory;
   final List<String> keys = Collections.unmodifiableList(asList(TRACEPARENT, TRACESTATE));
+  final TraceparentFormat traceparentFormat = TraceparentFormat.get();
+  final TracestateFormat tracestateFormat = TracestateFormat.get();
 
-  TraceContextPropagation(Builder builder) {
-    this.tracestateKey = builder.tracestateKey;
-    this.tracestateFactory = Tracestate.newFactory(tracestateKey);
+  TraceContextPropagation(Factory factory) {
+    this.tracestateKey = factory.tracestateKey;
   }
 
   @Override public List<String> keys() {
     return keys;
-  }
-
-  @Override public boolean requires128BitTraceId() {
-    return true;
-  }
-
-  @Override public TraceContext decorate(TraceContext context) {
-    return tracestateFactory.decorate(context);
-  }
-
-  @Override public Propagation<String> get() {
-    return this;
-  }
-
-  @Override public <K> Propagation<K> create(KeyFactory<K> keyFactory) {
-    return StringPropagationAdapter.create(this, keyFactory);
   }
 
   @Override public <R> Injector<R> injector(Setter<R, String> setter) {
@@ -98,5 +125,33 @@ public final class TraceContextPropagation extends Propagation.Factory
   @Override public <R> Extractor<R> extractor(Getter<R, String> getter) {
     if (getter == null) throw new NullPointerException("getter == null");
     return new TraceContextExtractor<>(this, getter);
+  }
+
+  static boolean logOrThrow(String msg, boolean shouldThrow) {
+    if (shouldThrow) throw new IllegalArgumentException(msg);
+    Logger logger = LoggerHolder.logger();
+    if (!logger.isLoggable(Level.FINE)) return false; // fine level to not fill logs
+    logger.log(Level.FINE, msg);
+    return false;
+  }
+
+  static boolean logOrThrow(String msg, String param1, boolean shouldThrow) {
+    if (shouldThrow) throw new IllegalArgumentException(msg.replace("{0}", param1));
+    Logger logger = LoggerHolder.logger();
+    if (!logger.isLoggable(Level.FINE)) return false; // fine level to not fill logs
+    LogRecord lr = new LogRecord(Level.FINE, msg);
+    Object[] params = {param1};
+    lr.setParameters(params);
+    logger.log(lr);
+    return false;
+  }
+
+  // Use nested class to ensure logger isn't initialized unless it is accessed once.
+  static final class LoggerHolder { // visible for testing
+    static final Logger LOG = Logger.getLogger(TraceContextPropagation.class.getName());
+
+    static Logger logger() {
+      return LOG;
+    }
   }
 }
