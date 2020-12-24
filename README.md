@@ -29,10 +29,11 @@ as a stale upstream parent would be used as it wouldn't expect `traceparent` mut
 the same system unless that processor also mutating the corresponding entry in `tracestate`.
 
 Hence, it is questionable if there's any sense at all using `tracestate`. Besides manual
-coordination, it could be helpful to comform to the broken practice of treating `traceparent` the
-same as the `b3` header and `tracestate` as arbitrary baggage. In other words, we would forward it,
-but never use it. In doing so, it becomes an inefficient implementation of `b3` losing the only
-technical merit of `tracestate`, which is durability of the position in a trace.
+coordination, another way to progress is to conform to the broken practice of treating `traceparent`
+the same as the `b3` header and `tracestate` as arbitrary baggage. In other words, we would not
+implement the processing model or look for entries. We would forward `tracestate`, but never use it.
+That option is an inefficient implementation of `b3`, losing the main merit of `tracestate`:
+durability of a reliable last position in a trace.
 
 ## Trace Context format
 See [here](tracecontext/README.md) for instructions on how to use the [Trace Context](https://w3c.github.io/trace-context/) format.
