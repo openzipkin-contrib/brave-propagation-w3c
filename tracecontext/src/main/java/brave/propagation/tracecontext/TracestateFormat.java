@@ -15,8 +15,8 @@ package brave.propagation.tracecontext;
 
 import brave.internal.codec.EntrySplitter;
 
+import static brave.internal.codec.CharSequences.regionMatches;
 import static brave.propagation.tracecontext.TraceContextPropagation.logOrThrow;
-import static brave.propagation.tracecontext.internal.CharSequences.regionMatches;
 
 /**
  * Implements https://tracecontext.github.io/trace-context/#tracestate-header
@@ -85,7 +85,7 @@ final class TracestateFormat implements EntrySplitter.Handler<int[]> {
   }
 
   @Override public boolean onEntry(int[] target,
-    String buffer, int beginKey, int endKey, int beginValue, int endValue) {
+    CharSequence buffer, int beginKey, int endKey, int beginValue, int endValue) {
     if (!validateKey(buffer, beginKey, endKey) || !validateValue(buffer, beginValue, endValue)) {
       return false;
     }

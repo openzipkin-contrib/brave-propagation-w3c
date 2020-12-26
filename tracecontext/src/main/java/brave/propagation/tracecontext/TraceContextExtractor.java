@@ -19,10 +19,10 @@ import brave.propagation.TraceContext.Extractor;
 import brave.propagation.TraceContextOrSamplingFlags;
 import java.util.Arrays;
 
+import static brave.internal.codec.CharSequences.withoutSubSequence;
 import static brave.propagation.B3SingleFormat.parseB3SingleFormat;
 import static brave.propagation.tracecontext.TraceContextPropagation.TRACEPARENT;
 import static brave.propagation.tracecontext.TraceContextPropagation.TRACESTATE;
-import static brave.propagation.tracecontext.internal.CharSequences.withoutSubSequence;
 
 final class TraceContextExtractor<R> implements Extractor<R> {
   final Getter<R, String> getter;

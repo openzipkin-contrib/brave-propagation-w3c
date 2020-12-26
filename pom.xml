@@ -48,13 +48,15 @@
     <!--    <brave.groupId>com.github.openzipkin.brave</brave.groupId>-->
     <!--    <brave.version>master-SNAPSHOT</brave.version>-->
     <brave.groupId>io.zipkin.brave</brave.groupId>
-    <brave.version>5.13.2</brave.version>
+    <brave.version>5.13.3</brave.version>
 
     <junit-jupiter.version>5.7.0</junit-jupiter.version>
     <assertj.version>3.18.1</assertj.version>
     <mockito.version>3.6.28</mockito.version>
     <!-- until we are off internals, tracecontext/src/it needs to check we don't drift -->
     <brave.run.version>${brave.version}</brave.run.version>
+
+    <license.skip>${skipTests}</license.skip>
 
     <animal-sniffer-maven-plugin.version>1.19</animal-sniffer-maven-plugin.version>
     <go-offline-maven-plugin.version>1.2.7</go-offline-maven-plugin.version>
@@ -397,7 +399,7 @@
         <artifactId>license-maven-plugin</artifactId>
         <version>${license-maven-plugin.version}</version>
         <configuration>
-          <skip>${skipTests}</skip>
+          <skip>${license.skip}</skip>
           <header>${main.basedir}/src/etc/header.txt</header>
           <mapping>
             <!-- Don't use javadoc style as this makes code formatters break it by adding tags! -->
