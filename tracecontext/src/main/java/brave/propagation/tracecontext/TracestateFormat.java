@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 The OpenZipkin Authors
+ * Copyright 2020-2024 The OpenZipkin Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -85,7 +85,7 @@ final class TracestateFormat implements EntrySplitter.Handler<int[]> {
   }
 
   @Override public boolean onEntry(int[] target,
-    String buffer, int beginKey, int endKey, int beginValue, int endValue) {
+    CharSequence buffer, int beginKey, int endKey, int beginValue, int endValue) {
     if (!validateKey(buffer, beginKey, endKey) || !validateValue(buffer, beginValue, endValue)) {
       return false;
     }
