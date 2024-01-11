@@ -8,20 +8,38 @@ name: deploy
 # See https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-syntax-for-github-actions#filter-pattern-cheat-sheet
 on:
   push:
-    # Don't deploy tags as they conflict with [maven-release-plugin] prepare release N.M.L
+    # Don't deploy tags as they conflict with [maven-release-plugin] prepare release MAJOR.MINOR.PATCH
     tags: ''
     branches: master
 
 jobs:
   deploy:
-    runs-on: ubuntu-20.04  # newest available distribution, aka focal
+    name: deploy (${{ matrix.name }})
+    runs-on: ubuntu-22.04  # newest available distribution, aka jellyfish
+    strategy:
+      fail-fast: false  # don't fail fast as we can re-run one job that failed
+      matrix:
+        include:
+          - name: jars
+            deploy_script: build-bin/deploy
+          # Deploy the Bill of Materials (BOM) separately as it is unhooked from the main project intentionally
+          - name: bom
+            deploy_script: build-bin/deploy_bom
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 1  # only needed to get the sha label
+          # Prevent use of implicit GitHub Actions read-only token GITHUB_TOKEN.
+          # We push Javadocs to the gh-pages branch on commit.
+          token: ${{ secrets.GH_TOKEN }}
+          fetch-depth: 0  # allow build-bin/idl_to_gh_pages to get the full history
+      - name: Setup java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'  # zulu as it supports a wide version range
+          java-version: '11'  # earliest LTS and last that can compile the 1.6 release profile.
       - name: Cache local Maven repository
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
@@ -41,6 +59,6 @@ jobs:
           # SONATYPE_PASSWORD=<password to sonatype account token>
           #   - referenced in .settings.xml
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-        run: |  # GITHUB_REF will be refs/heads/master or refs/tags/N.M.L
+        run: |  # GITHUB_REF will be refs/heads/master or refs/tags/MAJOR.MINOR.PATCH
           build-bin/configure_deploy &&
-          build-bin/deploy $(echo ${GITHUB_REF} | cut -d/ -f 3)
+          ${{ matrix.deploy_script }} $(echo ${GITHUB_REF} | cut -d/ -f 3)

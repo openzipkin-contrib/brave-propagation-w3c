@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 The OpenZipkin Authors
+ * Copyright 2020-2024 The OpenZipkin Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -17,7 +17,11 @@ import brave.ScopedSpan;
 import brave.Span;
 import brave.Tracing;
 import brave.http.HttpClientHandler;
+import brave.http.HttpClientRequest;
+import brave.http.HttpClientResponse;
 import brave.http.HttpServerHandler;
+import brave.http.HttpServerRequest;
+import brave.http.HttpServerResponse;
 import brave.http.HttpTracing;
 import brave.test.TestSpanHandler;
 import org.junit.jupiter.api.Test;
@@ -40,8 +44,8 @@ class BasicUsageTest {
       assertThat(parent.context().sampled()).isTrue(); // sanity check
 
       try (HttpTracing httpTracing = HttpTracing.create(tracing)) {
-        HttpClientHandler clientHandler = HttpClientHandler.create(httpTracing);
-        HttpServerHandler serverHandler = HttpServerHandler.create(httpTracing);
+        HttpClientHandler<HttpClientRequest, HttpClientResponse> clientHandler = HttpClientHandler.create(httpTracing);
+        HttpServerHandler<HttpServerRequest, HttpServerResponse> serverHandler = HttpServerHandler.create(httpTracing);
 
         FakeHttpRequest.Client request = new FakeHttpRequest.Client("/");
         Span client = clientHandler.handleSend(request);

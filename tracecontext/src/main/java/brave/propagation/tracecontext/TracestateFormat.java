@@ -19,7 +19,7 @@ import static brave.propagation.tracecontext.TraceContextPropagation.logOrThrow;
 import static brave.propagation.tracecontext.internal.CharSequences.regionMatches;
 
 /**
- * Implements https://tracecontext.github.io/trace-context/#tracestate-header
+ * Implements <a href="https://tracecontext.github.io/trace-context/#tracestate-header">...</a>
  *
  * <p>In the above specification, a tracestate entry is sometimes called member. The key of the
  * entry is most often called vendor name, but it is more about a tracing system vs something vendor
@@ -58,10 +58,10 @@ final class TracestateFormat implements EntrySplitter.Handler<int[]> {
   //
   // The performance cost of a bounds check is still better than using BitSet, and avoids allocating
   // an array of 64 thousand booleans: that could be problematic in old JREs or Android.
-  static int LAST_VALID_KEY_CHAR = 'z';
-  static boolean[] VALID_KEY_CHARS = new boolean[LAST_VALID_KEY_CHAR + 1];
-  static int LAST_VALID_VALUE_CHAR = '~';
-  static boolean[] VALID_VALUE_CHARS = new boolean[LAST_VALID_VALUE_CHAR + 1];
+  static final int LAST_VALID_KEY_CHAR = 'z';
+  static final boolean[] VALID_KEY_CHARS = new boolean[LAST_VALID_KEY_CHAR + 1];
+  static final int LAST_VALID_VALUE_CHAR = '~';
+  static final boolean[] VALID_VALUE_CHARS = new boolean[LAST_VALID_VALUE_CHAR + 1];
 
   static {
     for (char c = 0; c < VALID_KEY_CHARS.length; c++) {
@@ -112,7 +112,7 @@ final class TracestateFormat implements EntrySplitter.Handler<int[]> {
   /**
    * Performs validation according to the ABNF of the {@code tracestate} key.
    *
-   * <p>See https://www.w3.org/TR/trace-context-1/#key
+   * <p>See <a href="https://www.w3.org/TR/trace-context-1/#key">...</a>
    */
   // Logic to narrow error messages is intentionally deferred.
   // Performance matters as this could be called up to 32 times per header.
@@ -136,8 +136,8 @@ final class TracestateFormat implements EntrySplitter.Handler<int[]> {
   }
 
   /**
-   * https://www.w3.org/TR/trace-context-1 has some ambiguity about how to treat the value when
-   * considering whitespace. https://github.com/w3c/trace-context/pull/411 clarifies initial spaces
+   * <a href="https://www.w3.org/TR/trace-context-1">...</a> has some ambiguity about how to treat the value when
+   * considering whitespace. <a href="https://github.com/w3c/trace-context/pull/411">...</a> clarifies initial spaces
    * are a part of the value. However, the value must end in at least one character in the range ' '
    * to '~', except ',' and '='. This implementation is based on the updated interpretation.
    *

@@ -49,7 +49,7 @@ public final class TraceContextPropagation implements Propagation<String> {
      * The key to use inside the {@code tracestate} value. Defaults to "b3".
      *
      * @throws IllegalArgumentException if the key doesn't conform to ABNF rules defined by the
-     *                                  <href="https://www.w3.org/TR/trace-context-1/#key">trace-context
+     *                                  <href="<a href="https://www.w3.org/TR/trace-context-1/#key">...</a>">trace-context
      *                                  specification</href>.
      */
     public FactoryBuilder tracestateKey(String key) {
@@ -77,20 +77,12 @@ public final class TraceContextPropagation implements Propagation<String> {
       return new TraceContextPropagation(this);
     }
 
-    /**
-     * @deprecated end users and instrumentation should never call this, and instead use
-     * {@link #get()}. This only remains to avoid rev-lock upgrading to Brave 6.
-     */
-    @Deprecated public <K> Propagation<K> create(KeyFactory<K> unused) {
-      throw new UnsupportedOperationException("As of Brave 5.12, call PropagationFactory.get()");
-    }
-
     @Override public boolean supportsJoin() {
-      return true; // B3 allows join
+      return true; // B3 (in tracestate) allows join
     }
 
     @Override public boolean requires128BitTraceId() {
-      return false; // B3 doesn't requre 128-bit
+      return false; // B3  (in tracestate) doesn't require 128-bit
     }
 
     @Override public TraceContext decorate(TraceContext context) {
