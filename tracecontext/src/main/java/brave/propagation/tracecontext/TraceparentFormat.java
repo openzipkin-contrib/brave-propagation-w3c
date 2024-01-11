@@ -276,7 +276,7 @@ final class TraceparentFormat {
     return result;
   }
 
-  static final ThreadLocal<char[]> CHAR_BUFFER = new ThreadLocal<>();
+  static final ThreadLocal<char[]> CHAR_BUFFER = new ThreadLocal<char[]>();
 
   static char[] getCharBuffer() {
     char[] charBuffer = CHAR_BUFFER.get();

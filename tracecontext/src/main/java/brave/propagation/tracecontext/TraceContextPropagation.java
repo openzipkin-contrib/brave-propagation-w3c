@@ -97,6 +97,10 @@ public final class TraceContextPropagation implements Propagation<String> {
       Factory that = (Factory) o;
       return tracestateKey.equals(that.tracestateKey);
     }
+
+    @Override public int hashCode() {
+      return tracestateKey.hashCode();
+    }
   }
 
   final String tracestateKey;
@@ -114,12 +118,12 @@ public final class TraceContextPropagation implements Propagation<String> {
 
   @Override public <R> Injector<R> injector(Setter<R, String> setter) {
     if (setter == null) throw new NullPointerException("setter == null");
-    return new TraceContextInjector<>(this, setter);
+    return new TraceContextInjector<R>(this, setter);
   }
 
   @Override public <R> Extractor<R> extractor(Getter<R, String> getter) {
     if (getter == null) throw new NullPointerException("getter == null");
-    return new TraceContextExtractor<>(this, getter);
+    return new TraceContextExtractor<R>(this, getter);
   }
 
   static boolean logOrThrow(String msg, boolean shouldThrow) {
