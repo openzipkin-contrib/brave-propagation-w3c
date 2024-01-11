@@ -8,11 +8,11 @@ This repo uses semantic versions. Please keep this in mind when choosing version
    a release, alert others on [gitter](https://gitter.im/openzipkin/zipkin) so that they don't accidentally merge
    anything. If they do, and the build fails because of that, you'll have to recreate the release tag described below.
 
-1. **Push a git tag**
+2. **Push a git tag**
 
    The trigger format is `release-MAJOR.MINOR.PATCH`, ex `git tag release-1.18.1 && git push origin release-1.18.1`.
 
-1. **Wait for CI**
+3. **Wait for CI**
 
    The `release-MAJOR.MINOR.PATCH` tag triggers [`build-bin/maven/maven_release`](build-bin/maven/maven_release),
    which creates commits, `MAJOR.MINOR.PATCH` tag, and increments the version (maven-release-plugin).
