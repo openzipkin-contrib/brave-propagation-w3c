@@ -26,7 +26,7 @@ import java.util.logging.Logger;
 import static java.util.Arrays.asList;
 
 public final class TraceContextPropagation implements Propagation<String> {
-  static final String TRACEPARENT = "traceparent", TRACESTATE = "tracestate";
+  public static final String TRACEPARENT = "traceparent", TRACESTATE = "tracestate";
   public static final Propagation.Factory FACTORY = new Factory(newFactoryBuilder());
   static final Propagation<String> INSTANCE = FACTORY.get();
 
