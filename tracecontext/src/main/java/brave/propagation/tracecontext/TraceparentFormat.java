@@ -20,12 +20,10 @@ import java.nio.ByteBuffer;
 import static brave.internal.codec.HexCodec.writeHexLong;
 
 /** Implements <a href="https://tracecontext.github.io/trace-context/#traceparent-header">...</a> */
-// TODO: this uses the internal Platform class as it defers access to the logger and makes JUL less
-// expensive. We should inline that here to to unhook the internal dep.
-final class TraceparentFormat {
+public final class TraceparentFormat {
   static final TraceparentFormat INSTANCE = new TraceparentFormat(false);
 
-  static TraceparentFormat get() {
+  public static TraceparentFormat get() {
     return INSTANCE;
   }
 
@@ -44,7 +42,7 @@ final class TraceparentFormat {
   }
 
   /** Writes all "traceparent" defined fields in the trace context to a hyphen delimited string. */
-  String write(TraceContext context) {
+  public String write(TraceContext context) {
     char[] buffer = getCharBuffer();
     int length = write(context, buffer);
     return new String(buffer, 0, length);
@@ -54,7 +52,7 @@ final class TraceparentFormat {
    * Like {@link #write(TraceContext)}, but for requests with byte array or byte buffer values. For
    * example, {@link ByteBuffer#wrap(byte[])} can wrap the result.
    */
-  byte[] writeAsBytes(TraceContext context) {
+  public byte[] writeAsBytes(TraceContext context) {
     char[] buffer = getCharBuffer();
     int length = write(context, buffer);
     return asciiToNewByteArray(buffer, length);
@@ -81,7 +79,7 @@ final class TraceparentFormat {
     return pos;
   }
 
-  @Nullable TraceContext parse(CharSequence parent) {
+  @Nullable public TraceContext parse(CharSequence parent) {
     return parse(parent, 0, parent.length(), shouldThrow);
   }
 
@@ -95,7 +93,7 @@ final class TraceparentFormat {
    * @param endIndex   the exclusive end index: {@linkplain CharSequence#charAt(int) index}
    *                   <em>after</em> the last character in {@code traceparent} format.
    */
-  @Nullable TraceContext parse(CharSequence value, int beginIndex, int endIndex) {
+  @Nullable public TraceContext parse(CharSequence value, int beginIndex, int endIndex) {
     return parse(value, beginIndex, endIndex, shouldThrow);
   }
 
