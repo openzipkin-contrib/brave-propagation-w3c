@@ -45,5 +45,5 @@ All artifacts publish to the group ID "io.zipkin.contrib.brave-propagation-w3c".
 release version for all components.
 
 ### Library Snapshots
-Snapshots are uploaded to [Sonatype](https://oss.sonatype.org/content/repositories/snapshots) after
+Snapshots are uploaded to [Sonatype](https://central.sonatype.com/repository/maven-snapshots/) after
 commits to master.
